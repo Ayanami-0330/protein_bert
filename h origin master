@@ -1,0 +1,69 @@
+[33mcad3011[m[33m ([m[1;36mHEAD -> [m[1;32mmaster[m[33m, [m[1;31morigin/master[m[33m, [m[1;31morigin/HEAD[m[33m)[m 在现有数据+ProteinBERT约束下，存在明显性能天花板
+[33m489e56c[m[33m ([m[1;31morigin/fix-anticrispr-modify[m[33m, [m[1;32mfix-anticrispr-modify[m[33m)[m feat: 修改demo笔记本，新增交叉注意力与特征提取模块
+[33mad0e1eb[m 更新anticrispr_demo.ipynb：添加GPU指定+类别权重+数据集路径适配+finetune策略优化
+[33m297d96c[m 新增anticrispr数据集处理脚本+finetune demo文件：适配自定义数据集路径+GPU指定+类别权重优化
+[33m2c882fe[m 新增scripts/fasta_to_csv.py脚本，生成anticrispr_benchmarks下的CSV文件
+[33m83198c9[m Update existing_model_loading.py
+[33m168a4db[m Update ProteinBERT demo.ipynb
+[33m7719e3e[m Update README.md
+[33mbe15b97[m Update existing_model_loading.py
+[33m1d92b1b[m Update README.md
+[33m0880bc2[m Update README.md
+[33me7e5515[m Added huggingfavce link
+[33mc78be3a[m Merge pull request #66 from linjames0/patch-2
+[33m8eaefe4[m Merge pull request #65 from linjames0/patch-1
+[33ma871c72[m Fixed typo: annoatations to annotations
+[33me70544f[m Fixed a typo
+[33mbe693cc[m Update README.md
+[33m548e08f[m Update README.md
+[33m72bb86d[m Update README.md
+[33m5d9c90b[m Update README.md
+[33m443129f[m Merge pull request #44 from r-kellerm/master
+[33m6fe3d92[m Replace obsolete get_weights (align with TF v2.11)
+[33m06afcf7[m Create pretrained model dir if needed
+[33mcf8ffbd[m Merge pull request #40 from r-kellerm/master
+[33m8d25844[m Update README.md
+[33m0ff598a[m Update installation from sources instruction
+[33m0abcbe6[m Typo fix
+[33m56590c1[m Formatting ReadMe shell lines
+[33m0615500[m Update README.md
+[33md29d299[m Merge pull request #37 from MikeMACintosh/patch-1
+[33m6c705a0[m add hyperlink to example
+[33m490d1df[m Merge pull request #35 from PrathamSoni/patch-1
+[33m75f3611[m typo
+[33m2090b78[m Added copy of protein benchmarks
+[33m344c844[m Create README.md
+[33m6acc430[m Update README.md
+[33m729346c[m Rename README.rst to README.md
+[33ma2577ee[m Update README.rst
+[33m6fd6926[m Merge pull request #20 from JudeWells/master
+[33m4d00e89[m change param name lr -> learning rate to avoid deprecation warning
+[33m3a53892[m Update README.rst
+[33mbc2c881[m Add final analyses notebook (V1)
+[33m66d4e9e[m Update README.rst
+[33m02d634f[m Update README.rst
+[33mb72af9b[m Update README.rst
+[33m4b36e61[m Update README.rst
+[33mf5576b8[m Update README.rst
+[33m82a08d1[m Added tensorflow_addons as another dependency
+[33ma181614[m Updated the demo notebook.
+[33m3cdbfc9[m Update README.rst
+[33m9b4c285[m Update README.rst
+[33m7cb8d6a[m Update README.rst
+[33m46ad1ce[m Update README.rst
+[33mc661e28[m Update README.rst
+[33m244e9d0[m Added setup.py
+[33m9268ecd[m small updates
+[33mdda4bd6[m Fixed bugs and issues with h5 dataset
+[33mf731387[m Update README.rst
+[33m31e83bb[m Update README.rst
+[33mab1b9c3[m Update README.rst
+[33ma9429c4[m Update README.rst
+[33md32f80b[m Delete README.txt
+[33mfe30343[m Update README.rst
+[33mb41d6d1[m Create README.rst
+[33me0cc616[m Added ProteinBERT demo.ipynb
+[33m14176e9[m A working version of finetuning
+[33me16c079[m Added pretraining and finetuning
+[33mba1be3f[m Added scripts for creating an h5 dataset.
+[33mac10c1e[m Started the project, created bin/create_uniref_db
