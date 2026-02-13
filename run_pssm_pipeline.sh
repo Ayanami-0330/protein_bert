@@ -37,14 +37,20 @@ echo "[$(date '+%Y-%m-%d %H:%M:%S')] Stage 3: Completed" | tee -a "${MAIN_LOG}"
 # 阶段4: 构建特征缓存
 echo "[$(date '+%Y-%m-%d %H:%M:%S')] Stage 4: Building feature cache..." | tee -a "${MAIN_LOG}"
 conda run -n tf24pb python "/home/nemophila/projects/protein_bert/scripts/pssm/04_build_feature_cache.py" \
-  --manifest-csv "${MANIFEST}" --work-root "${WORK_ROOT}" >> "${MAIN_LOG}" 2>&1
+  --manifest-csv "${MANIFEST}" --work-root "${WORK_ROOT}" --variants 310,710,1110 >> "${MAIN_LOG}" 2>&1
 echo "[$(date '+%Y-%m-%d %H:%M:%S')] Stage 4: Completed" | tee -a "${MAIN_LOG}"
 
 # 阶段5: 运行实验
-echo "[$(date '+%Y-%m-%d %H:%M:%S')] Stage 5: Running Exp15 experiments..." | tee -a "${MAIN_LOG}"
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] Stage 5: Running Exp15~Exp17 experiments..." | tee -a "${MAIN_LOG}"
 conda run -n tf24pb jupyter nbconvert --to notebook --execute --inplace \
   "/home/nemophila/projects/protein_bert/anticrispr_demo.ipynb" >> "${MAIN_LOG}" 2>&1
 echo "[$(date '+%Y-%m-%d %H:%M:%S')] Stage 5: Completed" | tee -a "${MAIN_LOG}"
+
+# 阶段6: 生成结论报告
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] Stage 6: Generating plan reports..." | tee -a "${MAIN_LOG}"
+conda run -n tf24pb python "/home/nemophila/projects/protein_bert/scripts/pssm/06_generate_plan_reports.py" \
+  --features-dir "${WORK_ROOT}/features" >> "${MAIN_LOG}" 2>&1
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] Stage 6: Completed" | tee -a "${MAIN_LOG}"
 
 echo "[$(date '+%Y-%m-%d %H:%M:%S')] ========================================" | tee -a "${MAIN_LOG}"
 echo "[$(date '+%Y-%m-%d %H:%M:%S')] All Stages Completed Successfully!" | tee -a "${MAIN_LOG}"

@@ -61,23 +61,23 @@ fi
 
 echo -e "\n[5] 特征缓存状态"
 echo "---"
-if [ -f "/home/nemophila/projects/protein_bert/pssm_work/features/pssm_features_310.parquet" ]; then
-    echo "✓ 特征缓存已构建"
-    ls -lh /home/nemophila/projects/protein_bert/pssm_work/features/pssm_features_310.*
-elif [ -f "/home/nemophila/projects/protein_bert/pssm_work/features/pssm_features_310.csv" ]; then
-    echo "✓ 特征缓存已构建 (CSV 格式)"
-    ls -lh /home/nemophila/projects/protein_bert/pssm_work/features/pssm_features_310.csv
-else
-    echo "✗ 特征缓存尚未构建"
-fi
+for dim in 310 710 1110; do
+    if [ -f "/home/nemophila/projects/protein_bert/pssm_work/features/pssm_features_${dim}.parquet" ]; then
+        echo "✓ pssm_features_${dim}.parquet 已构建"
+    elif [ -f "/home/nemophila/projects/protein_bert/pssm_work/features/pssm_features_${dim}.csv" ]; then
+        echo "✓ pssm_features_${dim}.csv 已构建"
+    else
+        echo "✗ pssm_features_${dim} 尚未构建"
+    fi
+done
 
-echo -e "\n[6] Exp15 实验结果"
+echo -e "\n[6] Exp15~Exp17 实验结果"
 echo "---"
-if [ -f "/home/nemophila/projects/protein_bert/pssm_work/features/exp15_results.csv" ]; then
-    echo "✓ Exp15 实验已完成"
-    head -5 /home/nemophila/projects/protein_bert/pssm_work/features/exp15_results.csv
+if [ -f "/home/nemophila/projects/protein_bert/pssm_work/features/exp_results.csv" ]; then
+    echo "✓ 实验已完成（exp_results.csv）"
+    head -8 /home/nemophila/projects/protein_bert/pssm_work/features/exp_results.csv
 else
-    echo "✗ Exp15 实验尚未开始"
+    echo "✗ 实验尚未开始或尚未汇总（exp_results.csv 缺失）"
 fi
 
 echo -e "\n[7] 磁盘空间"
