@@ -2,3 +2,8 @@
 /dist/
 /build/
 /*.egg-info
+
+# 预训练权重与生成数据（体积大，不推送）
+proteinbert_models/
+pssm_work/
+blast_db/
