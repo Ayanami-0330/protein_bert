@@ -1,0 +1,5 @@
+start,end,dim,block,description
+0,109,110,RPSSM,11 AA groups x lag(10) autocovariance
+110,309,200,PSSM-AC,20 AA columns x lag(10) autocovariance
+310,709,400,PSSM-composition,20x20 composition matrix (residue-conditioned PSSM mean)
+710,1109,400,DPC-PSSM,20x20 adjacent-position coupling matrix

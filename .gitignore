@@ -2,3 +2,6 @@
 /dist/
 /build/
 /*.egg-info
+
+# Anti-CRISPR 泛化实验：训练产出不推送
+anticrispr_generalization/outputs/
