@@ -7,3 +7,14 @@
 proteinbert_models/
 pssm_work/
 blast_db/
+
+# Baseline cache binaries (large, reproducible, keep local only)
+cache/**/*.npy
+cache/**/*.npz
+cache/**/*.pt
+cache/**/*.bin
+cache/**/*.pkl
+
+# Keep lightweight experiment summaries trackable
+!cache/**/*.json
+!cache/**/*.csv
