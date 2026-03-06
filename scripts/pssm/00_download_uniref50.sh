@@ -2,16 +2,16 @@
 set -euo pipefail
 
 # Download UniRef50 FASTA and build a local BLAST database.
-# All data stays under /home/nemophila/projects/protein_bert by default.
+# All data stays under /home/nemophila/data by default.
 #
 # Usage:
 #   bash scripts/pssm/00_download_uniref50.sh
 #
 # Optional env:
-#   DB_ROOT=/home/nemophila/projects/protein_bert/blast_db
+#   DB_ROOT=/home/nemophila/data/blast_db
 #   UNIREF50_FASTA_URL=https://ftp.uniprot.org/pub/databases/uniprot/uniref/uniref50/uniref50.fasta.gz
 
-DB_ROOT="${DB_ROOT:-/home/nemophila/projects/protein_bert/blast_db}"
+DB_ROOT="${DB_ROOT:-/home/nemophila/data/blast_db}"
 UNIREF50_FASTA_URL="${UNIREF50_FASTA_URL:-https://ftp.uniprot.org/pub/databases/uniprot/uniref/uniref50/uniref50.fasta.gz}"
 
 mkdir -p "${DB_ROOT}"

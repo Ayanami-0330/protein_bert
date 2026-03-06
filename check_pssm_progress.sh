@@ -13,7 +13,7 @@ ps -ef | grep -E "makeblastdb|psiblast|01_run_psiblast_batch|03_extract_rpssm|04
 
 echo -e "\n[2] 数据库状态"
 echo "---"
-DB_PREFIX="/home/nemophila/projects/protein_bert/blast_db/uniref50"
+DB_PREFIX="${BLAST_DB_PREFIX:-/home/nemophila/data/blast_db/uniref50}"
 if [ -s "${DB_PREFIX}.pal" ] || [ -s "${DB_PREFIX}.00.psq" ]; then
     echo "✓ BLAST 数据库已建立（分卷格式）"
     echo "  - pal 文件: $([ -s "${DB_PREFIX}.pal" ] && echo 已生成 || echo 未生成)"
@@ -21,21 +21,24 @@ if [ -s "${DB_PREFIX}.pal" ] || [ -s "${DB_PREFIX}.00.psq" ]; then
     echo "  - psq 分卷数: ${part_count}"
 else
     echo "✗ BLAST 数据库尚未完成（仍在建立中）"
-    if [ -f "/home/nemophila/projects/protein_bert/blast_db/uniref50.fasta" ]; then
-        echo "  - uniref50.fasta 已解压: $(du -sh /home/nemophila/projects/protein_bert/blast_db/uniref50.fasta | cut -f1)"
+    DB_FASTA="$(dirname "${DB_PREFIX}")/uniref50.fasta"
+    if [ -f "${DB_FASTA}" ]; then
+        echo "  - uniref50.fasta 已解压: $(du -sh "${DB_FASTA}" | cut -f1)"
     fi
 fi
 
 echo -e "\n[3] PSSM 生成进度"
 echo "---"
-PSSM_DIR="/home/nemophila/projects/protein_bert/pssm_work/pssm"
+WORK_ROOT="${PSSM_WORK_ROOT:-/home/nemophila/data/pssm_work}"
+RESULTS_ROOT="${PB_RESULTS_ROOT:-/home/nemophila/data/protein_bert_results}"
+PSSM_DIR="${WORK_ROOT}/pssm"
 if [ -d "$PSSM_DIR" ]; then
     pssm_count=$(ls "$PSSM_DIR"/*.pssm 2>/dev/null | wc -l)
     echo "已生成 PSSM 文件: $pssm_count / 1393"
     echo "进度: $(echo "scale=2; $pssm_count * 100 / 1393" | bc)%"
     
     # 统计成功/失败/跳过
-    LOG_FILE="/home/nemophila/projects/protein_bert/pssm_work/logs/psiblast_batch.log"
+    LOG_FILE="${WORK_ROOT}/logs/psiblast_batch.log"
     if [ -f "$LOG_FILE" ]; then
         ok_count=$(grep -c '\[OK\]' "$LOG_FILE" 2>/dev/null || echo 0)
         fail_count=$(grep -c '\[FAIL\]' "$LOG_FILE" 2>/dev/null || echo 0)
@@ -52,9 +55,9 @@ fi
 
 echo -e "\n[4] 特征提取状态"
 echo "---"
-if [ -f "/home/nemophila/projects/protein_bert/pssm_work/features/feature_status.csv" ]; then
+if [ -f "${WORK_ROOT}/features/feature_status.csv" ]; then
     echo "✓ 特征提取已完成"
-    wc -l /home/nemophila/projects/protein_bert/pssm_work/features/feature_status.csv
+    wc -l "${WORK_ROOT}/features/feature_status.csv"
 else
     echo "✗ 特征提取尚未开始"
 fi
@@ -62,9 +65,9 @@ fi
 echo -e "\n[5] 特征缓存状态"
 echo "---"
 for dim in 310 710 1110; do
-    if [ -f "/home/nemophila/projects/protein_bert/pssm_work/features/pssm_features_${dim}.parquet" ]; then
+    if [ -f "${WORK_ROOT}/features/pssm_features_${dim}.parquet" ]; then
         echo "✓ pssm_features_${dim}.parquet 已构建"
-    elif [ -f "/home/nemophila/projects/protein_bert/pssm_work/features/pssm_features_${dim}.csv" ]; then
+    elif [ -f "${WORK_ROOT}/features/pssm_features_${dim}.csv" ]; then
         echo "✓ pssm_features_${dim}.csv 已构建"
     else
         echo "✗ pssm_features_${dim} 尚未构建"
@@ -73,23 +76,22 @@ done
 
 echo -e "\n[6] Exp15~Exp17 实验结果"
 echo "---"
-if [ -f "/home/nemophila/projects/protein_bert/pssm_work/features/exp_results.csv" ]; then
-    echo "✓ 实验已完成（exp_results.csv）"
-    head -8 /home/nemophila/projects/protein_bert/pssm_work/features/exp_results.csv
+if [ -f "${RESULTS_ROOT}/anticrispr_demo/anticrispr_demo_results.csv" ]; then
+    echo "✓ 实验已完成（anticrispr_demo_results.csv）"
+    head -8 "${RESULTS_ROOT}/anticrispr_demo/anticrispr_demo_results.csv"
 else
-    echo "✗ 实验尚未开始或尚未汇总（exp_results.csv 缺失）"
+    echo "✗ 实验尚未开始或尚未汇总（anticrispr_demo_results.csv 缺失）"
 fi
 
 echo -e "\n[7] 磁盘空间"
 echo "---"
 df -h /home/nemophila/projects/protein_bert | tail -1
 
-echo -e "\n[8] 后台任务日志文件"
+echo -e "\n[8] 后台任务日志文件示例"
 echo "---"
-echo "数据库下载建库日志: /home/nemophila/.cursor/projects/home-nemophila-projects/terminals/787696.txt"
-echo "串行总流程日志: /home/nemophila/.cursor/projects/home-nemophila-projects/terminals/972930.txt"
+echo "主流水线日志: ${WORK_ROOT}/logs/pipeline_main.log"
 
 echo -e "\n==============================================="
 echo "提示：使用 'tail -f' 可以实时查看日志"
-echo "例如：tail -f /home/nemophila/projects/protein_bert/pssm_work/logs/psiblast_batch.log"
+echo "例如：tail -f \"${WORK_ROOT}/logs/psiblast_batch.log\""
 echo "==============================================="

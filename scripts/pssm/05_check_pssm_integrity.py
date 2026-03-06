@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """检查所有 .pssm 与 manifest 中序列长度是否一致（序列中的空格不参与计数）。"""
 import csv
+import os
 import sys
 from pathlib import Path
 
@@ -16,7 +17,8 @@ def count_pssm_rows(pssm_path: Path) -> int:
 
 
 def main():
-    manifest_path = Path(__file__).resolve().parents[1] / "pssm_work" / "sample_manifest.csv"
+    default_root = Path(os.environ.get("PSSM_WORK_ROOT", "/home/nemophila/data/pssm_work"))
+    manifest_path = default_root / "sample_manifest.csv"
     if len(sys.argv) > 1:
         manifest_path = Path(sys.argv[1])
     if not manifest_path.exists():

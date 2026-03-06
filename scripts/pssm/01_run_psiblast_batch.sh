@@ -3,8 +3,8 @@ set -euo pipefail
 
 # Usage:
 #   bash scripts/pssm/01_run_psiblast_batch.sh \
-#     /home/nemophila/projects/protein_bert/pssm_work/sample_manifest.csv \
-#     /home/nemophila/projects/protein_bert/blast_db/uniref50 \
+#     /home/nemophila/data/pssm_work/sample_manifest.csv \
+#     /home/nemophila/data/blast_db/uniref50 \
 #     8
 
 MANIFEST_CSV="${1:?sample_manifest.csv is required}"

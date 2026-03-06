@@ -4,9 +4,9 @@ set -euo pipefail
 # Retry only failed sample ids from a previous batch.
 # Usage:
 #   bash scripts/pssm/02_retry_failed.sh \
-#     /home/nemophila/projects/protein_bert/pssm_work/sample_manifest.csv \
-#     /home/nemophila/projects/protein_bert/pssm_work/logs/failed_ids.txt \
-#     /home/nemophila/projects/protein_bert/blast_db/uniref50 \
+#     /home/nemophila/data/pssm_work/sample_manifest.csv \
+#     /home/nemophila/data/pssm_work/logs/failed_ids.txt \
+#     /home/nemophila/data/blast_db/uniref50 \
 #     4
 
 MANIFEST_CSV="${1:?sample_manifest.csv is required}"

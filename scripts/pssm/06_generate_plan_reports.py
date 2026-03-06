@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import argparse
+import os
 from pathlib import Path
 from typing import Dict, List
 
@@ -8,13 +9,16 @@ import pandas as pd
 BASELINE_EXPS = [
     "Baseline_ProteinBERT",
     "Ablation_RPSSM_110",
-    "Exp15_ProteinBERT_PSSM310",
+    "Ablation_RPSSM_310",
 ]
 
 TARGET_EXPS = [
-    "Exp16_ProteinBERT_PSSM710",
-    "Exp17_ProteinBERT_PSSM1110",
-    "Exp18_ProteinBERT_PSSM510",
+    "Ablation_RPSSM_710",
+    "Ablation_RPSSM_1110",
+    "ProteinBERT_PSSM110",
+    "ProteinBERT_PSSM310",
+    "ProteinBERT_PSSM710",
+    "ProteinBERT_PSSM1110",
 ]
 
 METRIC_COLS = ["AUC", "AUPRC", "F1", "MCC", "Brier", "ECE"]
@@ -33,10 +37,13 @@ def _load_and_merge_results(features_dir: Path) -> pd.DataFrame:
     parts = []
     for path in files:
         df = pd.read_csv(path)
-        required = {"Exp", "Seed", *METRIC_COLS}
+        required = {"Exp", *METRIC_COLS}
         if not required.issubset(set(df.columns)):
             continue
-        parts.append(df[["Exp", "Seed", *METRIC_COLS, *([c for c in df.columns if c == "Threshold"]) ]])
+        selected = ["Exp", *METRIC_COLS, *([c for c in df.columns if c == "Threshold"])]
+        if "Seed" in df.columns:
+            selected.insert(1, "Seed")
+        parts.append(df[selected])
 
     if not parts:
         raise RuntimeError("No valid experiment result tables found.")
@@ -182,18 +189,21 @@ def _write_comparison(features_dir: Path, summary_flat: pd.DataFrame) -> Path:
 def main() -> None:
     parser = argparse.ArgumentParser(description="Generate plan reports from experiment outputs.")
     parser.add_argument("--features-dir", required=True)
+    parser.add_argument("--results-dir", default=os.environ.get("PB_RESULTS_ROOT", "/home/nemophila/data/protein_bert_results/plan_reports"))
     args = parser.parse_args()
 
     features_dir = Path(args.features_dir)
     features_dir.mkdir(parents=True, exist_ok=True)
+    results_dir = Path(args.results_dir)
+    results_dir.mkdir(parents=True, exist_ok=True)
 
     merged = _load_and_merge_results(features_dir)
     summary = _summarize(merged)
     summary_flat = _flatten_summary(summary)
 
-    exp_results = features_dir / "exp_results.csv"
-    exp_summary = features_dir / "exp_summary.csv"
-    exp_summary_flat = features_dir / "exp_summary_flat.csv"
+    exp_results = results_dir / "plan_exp_results.csv"
+    exp_summary = results_dir / "plan_exp_summary.csv"
+    exp_summary_flat = results_dir / "plan_exp_summary_flat.csv"
     merged.to_csv(exp_results, index=False)
     summary.to_csv(exp_summary)
     summary_flat.to_csv(exp_summary_flat, index=False)
