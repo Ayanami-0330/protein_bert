@@ -16,15 +16,7 @@ This file replaces locally stored paper PDFs. Please use official DOI or project
 - DOI: https://doi.org/10.1016/j.molcel.2022.05.003
 - Official code: https://github.com/BackofenLab/DeepAcr
 
-## 4) AcrNET
-- Title: AcrNET: predicting anti-CRISPR with deep learning
-- DOI: https://doi.org/10.1093/bioinformatics/btad259
-- Official code: https://github.com/banma12956/AcrNET
-
-## 5) ProteinBERT
+## 4) ProteinBERT
 - Title: ProteinBERT: a universal deep-learning model of protein sequence and function
 - DOI: https://doi.org/10.1093/bioinformatics/btac020
 - Official code: https://github.com/nadavbra/protein_bert
-
-## 6) Global-Local Graph (used as inspiration in fusion design)
-- Official source link: please replace with the exact paper URL/DOI used in your experiment notes.
