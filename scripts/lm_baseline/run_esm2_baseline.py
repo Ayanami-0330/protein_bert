@@ -3,11 +3,12 @@ from pathlib import Path
 import sys
 import re
 from dataclasses import dataclass
-from typing import Any, Dict, Tuple
+from typing import Any, Dict, Iterable, Optional, Tuple
 
 import numpy as np
 import pandas as pd
 from sklearn.decomposition import PCA
+from sklearn.metrics import average_precision_score, brier_score_loss, f1_score, matthews_corrcoef, roc_auc_score
 from sklearn.model_selection import train_test_split
 import tensorflow as tf
 from tensorflow import keras
@@ -19,11 +20,9 @@ PROJECT_DIR = Path(__file__).resolve().parents[2]
 if str(PROJECT_DIR) not in sys.path:
     sys.path.insert(0, str(PROJECT_DIR))
 
-from proteinbert.pssm_fusion import load_anticrispr_with_ids, evaluate_binary, find_best_threshold
-
 SEED = 22
 MODEL_KEY = "ESM2_freezed"
-MODEL_NAME = "facebook/esm2_t33_650M_UR50D"
+MODEL_NAME = "facebook/esm2_t30_150M_UR50D"
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 DTYPE = torch.float16 if DEVICE == "cuda" else torch.float32
 _ESM2_CACHE: Dict[str, Any] = {"tokenizer": None, "model": None}
@@ -35,6 +34,60 @@ class HeadTrainConfig:
     batch_size: int = 16
     epochs: int = 40
     patience: int = 3
+
+
+def ensure_sample_ids(df: pd.DataFrame, split_name: str) -> pd.DataFrame:
+    out = df.copy()
+    out["sample_id"] = [f"{split_name}_{i:06d}" for i in range(len(out))]
+    return out
+
+
+def load_anticrispr_with_ids(benchmarks_dir: str, benchmark_name: str = "anticrispr_binary") -> Tuple[pd.DataFrame, pd.DataFrame]:
+    train_path = Path(benchmarks_dir) / f"{benchmark_name}.train.csv"
+    test_path = Path(benchmarks_dir) / f"{benchmark_name}.test.csv"
+    train_df = pd.read_csv(train_path).dropna().drop_duplicates().reset_index(drop=True)
+    test_df = pd.read_csv(test_path).dropna().drop_duplicates().reset_index(drop=True)
+    return ensure_sample_ids(train_df, "train"), ensure_sample_ids(test_df, "test")
+
+
+def expected_calibration_error(y_true: np.ndarray, y_prob: np.ndarray, n_bins: int = 10) -> float:
+    bins = np.linspace(0.0, 1.0, n_bins + 1)
+    ids = np.digitize(y_prob, bins) - 1
+    ece = 0.0
+    n = len(y_true)
+    for b in range(n_bins):
+        m = ids == b
+        if np.any(m):
+            conf = float(np.mean(y_prob[m]))
+            acc = float(np.mean(y_true[m]))
+            ece += (np.sum(m) / n) * abs(acc - conf)
+    return float(ece)
+
+
+def evaluate_binary(y_true: np.ndarray, y_prob: np.ndarray, threshold: float = 0.5) -> Dict[str, float]:
+    y_cls = (y_prob >= threshold).astype(int)
+    return {
+        "AUC": float(roc_auc_score(y_true, y_prob)),
+        "AUPRC": float(average_precision_score(y_true, y_prob)),
+        "F1": float(f1_score(y_true, y_cls)),
+        "MCC": float(matthews_corrcoef(y_true, y_cls)),
+        "Brier": float(brier_score_loss(y_true, y_prob)),
+        "ECE": expected_calibration_error(y_true, y_prob, n_bins=10),
+        "Threshold": float(threshold),
+    }
+
+
+def find_best_threshold(y_true: np.ndarray, y_prob: np.ndarray, grid: Optional[Iterable[float]] = None) -> float:
+    if grid is None:
+        grid = np.linspace(0.05, 0.95, 19)
+    best_thr = 0.5
+    best_f1 = -1.0
+    for thr in grid:
+        cur = f1_score(y_true, (y_prob >= thr).astype(int))
+        if cur > best_f1:
+            best_f1 = cur
+            best_thr = float(thr)
+    return best_thr
 
 
 def set_seed(seed: int = SEED) -> None:
@@ -83,6 +136,26 @@ def load_or_compute(path: Path, builder):
     if path.exists():
         return np.array(np.load(path), dtype=np.float32)
     value = builder()
+    save_npy(path, value)
+    return value
+
+
+def load_or_recompute_raw(path: Path, seqs, expected_hidden_size: int) -> np.ndarray:
+    if path.exists():
+        cached = np.array(np.load(path), dtype=np.float32)
+        ok_shape = (
+            cached.ndim == 2
+            and cached.shape[0] == len(seqs)
+            and cached.shape[1] == expected_hidden_size
+        )
+        if ok_shape:
+            return sanitize_features(cached)
+        print(
+            f"Cache mismatch at {path.name}: got {tuple(cached.shape)}, "
+            f"expected ({len(seqs)}, {expected_hidden_size}); recomputing."
+        )
+
+    value = encode_esm2_sentence(seqs)
     save_npy(path, value)
     return value
 
@@ -212,6 +285,7 @@ def main() -> None:
     set_seed(SEED)
     benchmarks_dir, cache_dir = get_paths()
     train_df, valid_df, test_df = load_splits(benchmarks_dir)
+    expected_hidden_size = int(load_esm2_components()[1].config.hidden_size)
 
     split_seqs = {
         "train": train_df["seq"].astype(str).tolist(),
@@ -227,7 +301,7 @@ def main() -> None:
     raw = {}
     for split_name, seqs in split_seqs.items():
         raw_path = cache_dir / f"{split_name}_raw.npy"
-        raw[split_name] = load_or_compute(raw_path, lambda seqs=seqs: encode_esm2_sentence(seqs))
+        raw[split_name] = load_or_recompute_raw(raw_path, seqs=seqs, expected_hidden_size=expected_hidden_size)
         print(MODEL_KEY, split_name, raw[split_name].shape)
 
     if len(raw["train"]) != len(labels["train"]) or len(raw["valid"]) != len(labels["valid"]) or len(raw["test"]) != len(labels["test"]):

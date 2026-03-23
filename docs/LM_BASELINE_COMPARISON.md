@@ -7,7 +7,7 @@
 在统一任务协议下比较以下冻结蛋白语言模型：
 - ProteinBERT
 - ProtT5 (`Rostlab/prot_t5_xl_uniref50`)
-- ESM-2 (`facebook/esm2_t33_650M_UR50D`)
+- ESM-2 (`facebook/esm2_t30_150M_UR50D`)
 - Ankh-large（默认 `ElnaggarLab/ankh2-large`）
 
 统一评估输出：`AUC, AUPRC, F1, MCC, Brier, ECE, Threshold`。
@@ -22,6 +22,7 @@
 
 - 每个 LM 先提取句子级表示（冻结大模型，仅前向推理）。
 - 将各 LM 的原始表示通过 train-set PCA 压缩到 128 维，缓存为 `cache/lm_baseline/<MODEL>/*_128.npy`。
+- ESM-2 当前使用 150M 版本（hidden size=640）；切换 checkpoint 时建议清理旧 `*_raw.npy`，或依赖维度校验逻辑自动重算，避免缓存误复用。
 - 在 128 维表示上训练统一 head：
   - `LayerNormalization -> Dense(128, relu) -> Dropout(0.3) -> Dense(1, sigmoid)`
 - 在验证集寻找最优阈值（F1），在测试集报告最终指标。
