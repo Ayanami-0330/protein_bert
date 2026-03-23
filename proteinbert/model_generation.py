@@ -3,10 +3,27 @@ import pickle
 
 import numpy as np
 
+import tensorflow as tf
 from tensorflow import keras
 
 from .shared_utils.util import log
 from .tokenization import additional_token_to_index, n_tokens, tokenize_seq
+
+
+def focal_loss(gamma=2.0, alpha=0.25):
+    """
+    Focal Loss for imbalanced binary classification.
+    FL(p_t) = -alpha_t * (1 - p_t)^gamma * log(p_t)
+    """
+    def focal_loss_fn(y_true, y_pred):
+        y_true = tf.cast(y_true, tf.float32)
+        y_pred = tf.clip_by_value(y_pred, 1e-7, 1.0 - 1e-7)
+        p_t = y_true * y_pred + (1.0 - y_true) * (1.0 - y_pred)
+        alpha_t = y_true * alpha + (1.0 - y_true) * (1.0 - alpha)
+        focal_weight = alpha_t * tf.pow(1.0 - p_t, gamma)
+        loss = -focal_weight * tf.math.log(p_t)
+        return tf.reduce_mean(loss)
+    return focal_loss_fn
     
 class ModelGenerator:
 
@@ -83,8 +100,19 @@ class PretrainingModelGenerator(ModelGenerator):
         
 class FinetuningModelGenerator(ModelGenerator):
 
-    def __init__(self, pretraining_model_generator, output_spec, pretraining_model_manipulation_function = None, dropout_rate = 0.5, optimizer_class = None, \
+    def __init__(self, pretraining_model_generator, output_spec, pretraining_model_manipulation_function = None, dropout_rate = 0.5,
+            head_type = 'default', loss_type = 'bce', optimizer_class = None, \
             lr = None, other_optimizer_kwargs = None, model_weights = None, optimizer_weights = None):
+        """
+        Parameters
+        ----------
+        head_type : str
+            'default' - original Dropout+Dense(1) head
+            'two_layer' - LN + Dense(128,relu) + Dropout(0.3) + Dense(1)
+        loss_type : str
+            'bce' - binary cross-entropy (default)
+            'focal' - focal loss (gamma=2, alpha=0.25)
+        """
         
         if other_optimizer_kwargs is None:
             if optimizer_class is None:
@@ -105,6 +133,8 @@ class FinetuningModelGenerator(ModelGenerator):
         self.output_spec = output_spec
         self.pretraining_model_manipulation_function = pretraining_model_manipulation_function
         self.dropout_rate = dropout_rate
+        self.head_type = head_type
+        self.loss_type = loss_type
                     
     def create_model(self, seq_len, freeze_pretrained_layers = False):
         
@@ -122,12 +152,22 @@ class FinetuningModelGenerator(ModelGenerator):
         last_hidden_layer = pretraining_output_seq_layer if self.output_spec.output_type.is_seq else pretraining_output_annoatations_layer
         last_hidden_layer = keras.layers.Dropout(self.dropout_rate)(last_hidden_layer)
         
+        # A1: Optional two-layer classification head
+        if self.head_type == 'two_layer':
+            last_hidden_layer = keras.layers.LayerNormalization(name = 'head-layer-norm')(last_hidden_layer)
+            last_hidden_layer = keras.layers.Dense(128, activation = 'relu', name = 'head-dense-hidden')(last_hidden_layer)
+            last_hidden_layer = keras.layers.Dropout(0.3, name = 'head-dropout')(last_hidden_layer)
+        
         if self.output_spec.output_type.is_categorical:
             output_layer = keras.layers.Dense(len(self.output_spec.unique_labels), activation = 'softmax')(last_hidden_layer)
             loss = 'sparse_categorical_crossentropy'
         elif self.output_spec.output_type.is_binary:
             output_layer = keras.layers.Dense(1, activation = 'sigmoid')(last_hidden_layer)
-            loss = 'binary_crossentropy'
+            # A2: Loss selection
+            if self.loss_type == 'focal':
+                loss = focal_loss(gamma = 2.0, alpha = 0.25)
+            else:
+                loss = 'binary_crossentropy'
         elif self.output_spec.output_type.is_numeric:
             output_layer = keras.layers.Dense(1, activation = None)(last_hidden_layer)
             loss = 'mse'

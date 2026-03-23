@@ -2,3 +2,35 @@
 /dist/
 /build/
 /*.egg-info
+
+# 预训练权重与生成数据（体积大，不推送）
+proteinbert_models/
+pssm_work/
+blast_db/
+
+# Baseline cache binaries (large, reproducible, keep local only)
+cache/**/*.npy
+cache/**/*.npz
+cache/**/*.pt
+cache/**/*.bin
+cache/**/*.pkl
+
+# Keep lightweight experiment summaries trackable
+!cache/**/*.json
+!cache/**/*.csv
+
+# Do not version-control redistributed paper PDFs; keep links in docs instead.
+Comparison/*.pdf
+
+# Publication commit filters: generated experiment artifacts
+Comparison/results/*.png
+Comparison/results/*.npz
+Comparison/results/*metrics.json
+notebooks/*umap*.png
+notebooks/pssm_ablation_bar.png
+backups/
+*.plan.md
+
+# Keep only summary tables/results under cache by default
+cache/**
+!cache/lm_baseline/lm_baseline_results.csv

@@ -26,6 +26,20 @@ local_representations, global_representations = model.predict(encoded_x, batch_s
 Have a look at the notebook used to finetune the model on a large set of diverse tasks and benchmarks for more usage examples:
 [ProteinBERT demo](https://github.com/nadavbra/protein_bert/blob/master/ProteinBERT%20demo.ipynb).
 
+Anti-CRISPR LM baseline comparison
+=============
+
+For Anti-CRISPR binary classification experiments in this repository, the LM baselines are provided as scripts under `scripts/lm_baseline/`:
+- `run_proteinbert_baseline.py`
+- `run_prott5_baseline.py`
+- `run_esm2_baseline.py`
+- `run_ankh_baseline.py`
+
+These scripts keep the same train/valid/test protocol and shared classification head,
+and report AUC/AUPRC/F1/MCC/Brier/ECE with a validation-selected threshold.
+
+See `LM_BASELINE_COMPARISON.md` for implementation details and how to connect the selected best backbone with existing PSSM-only and fusion experiments.
+
 You can also download  directly from Huggingface as a Keras model: https://huggingface.co/GrimSqueaker/proteinBERT
 
 
