@@ -18,3 +18,6 @@ cache/**/*.pkl
 # Keep lightweight experiment summaries trackable
 !cache/**/*.json
 !cache/**/*.csv
+
+# Do not version-control redistributed paper PDFs; keep links in docs instead.
+Comparison/*.pdf
